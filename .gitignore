@@ -5,3 +5,5 @@
 /out/
 *.iml
 /run/
+.idea/
+run/

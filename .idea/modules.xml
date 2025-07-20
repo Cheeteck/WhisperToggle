@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/whispertoggle.client.iml" filepath="$PROJECT_DIR$/.idea/modules/whispertoggle.client.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/whispertoggle.main.iml" filepath="$PROJECT_DIR$/.idea/modules/whispertoggle.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/whispertoggle.test.iml" filepath="$PROJECT_DIR$/.idea/modules/whispertoggle.test.iml" />
+    </modules>
+  </component>
+</project>

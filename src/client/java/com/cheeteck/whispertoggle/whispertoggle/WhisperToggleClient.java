@@ -86,7 +86,6 @@ public class WhisperToggleClient implements ClientModInitializer {
         });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
-            // /wt <player> command
             dispatcher.register(ClientCommandManager.literal("wt")
                     .then(ClientCommandManager.argument("target", StringArgumentType.word())
                             .suggests(SUGGEST_PLAYERS)
@@ -97,7 +96,6 @@ public class WhisperToggleClient implements ClientModInitializer {
                             })
                     )
             );
-
 
             HudRenderCallback.EVENT.register((DrawContext drawContext, float tickDelta) -> {
                 MinecraftClient client = MinecraftClient.getInstance();
@@ -122,22 +120,13 @@ public class WhisperToggleClient implements ClientModInitializer {
 
             ClientTickEvents.END_CLIENT_TICK.register(client -> {
                 if (client.world == null || client.player == null) return;
-
-                if (whisperMode && whisperTarget != null) {
-                    boolean targetOnline = client.world.getPlayers().stream()
-                            .anyMatch(p -> p.getEntityName().equalsIgnoreCase(whisperTarget));
-
-                    if (!targetOnline) {
-                        whisperMode = false;
-                        whisperTarget = null;
-                        client.player.sendMessage(Text.literal("§6[WhisperToggle] §7Target went offline. WhisperToggle disabled."), true);
-                    }
-                }
+                // No offline check here anymore
             });
 
             ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
                 whisperMode = false;
                 whisperTarget = null;
             });
-        })
-;;}}
+        });
+    }
+}

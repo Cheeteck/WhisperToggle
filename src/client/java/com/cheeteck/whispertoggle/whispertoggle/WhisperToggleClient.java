@@ -31,7 +31,6 @@ public class WhisperToggleClient implements ClientModInitializer {
     private static boolean whisperMode = false;
     private static KeyBinding toggleKey;
 
-    // ✅ Corrected SuggestionProvider with FabricClientCommandSource
     private static final SuggestionProvider<FabricClientCommandSource> SUGGEST_PLAYERS = (CommandContext<FabricClientCommandSource> context, SuggestionsBuilder builder) -> {
         MinecraftClient client = MinecraftClient.getInstance();
         if (client.getNetworkHandler() == null) {
@@ -63,16 +62,16 @@ public class WhisperToggleClient implements ClientModInitializer {
                 String msg;
                 if (whisperMode) {
                     if (whisperTarget != null) {
-                        msg = "Whisper mode ON → " + whisperTarget;
+                        msg = "§6[WhisperToggle] §fON → " + whisperTarget;
                     } else {
                         whisperMode = false;
                         msg = "No whisper target set! Use /wt <player> to set one.";
                     }
                 } else {
-                    msg = "Whisper mode OFF";
+                    msg = "§6[WhisperToggle] §fOFF";
                 }
                 if (client.player != null) {
-                    client.player.sendMessage(Text.literal(msg), false);
+                    client.player.sendMessage(Text.literal(msg), true);
                 }
             }
         });
@@ -87,41 +86,58 @@ public class WhisperToggleClient implements ClientModInitializer {
         });
 
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> {
+            // /wt <player> command
             dispatcher.register(ClientCommandManager.literal("wt")
                     .then(ClientCommandManager.argument("target", StringArgumentType.word())
                             .suggests(SUGGEST_PLAYERS)
                             .executes(ctx -> {
                                 whisperTarget = StringArgumentType.getString(ctx, "target");
-                                MinecraftClient.getInstance().player.sendMessage(Text.literal("Whisper target set to: " + whisperTarget), false);
+                                MinecraftClient.getInstance().player.sendMessage(Text.literal("§6[WhisperToggle] §fWhisper target set to: " + whisperTarget), true);
                                 return 1;
                             })
                     )
             );
-        });
 
-        HudRenderCallback.EVENT.register((DrawContext drawContext, float tickDelta) -> {
-            MinecraftClient client = MinecraftClient.getInstance();
-            if (client.player != null &&
-                    client.currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen &&
-                    whisperMode && whisperTarget != null) {
 
-                String status = "§7[Whispering to: §f" + whisperTarget + "§7]";
-                int x = 4;
-                int y = client.getWindow().getScaledHeight() - 25;
+            HudRenderCallback.EVENT.register((DrawContext drawContext, float tickDelta) -> {
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (client.player != null &&
+                        client.currentScreen instanceof net.minecraft.client.gui.screen.ChatScreen &&
+                        whisperMode && whisperTarget != null) {
 
-                drawContext.drawText(
-                        client.textRenderer,
-                        status,
-                        x,
-                        y,
-                        0xFFFFFF,
-                        true
-                );
-            }
-        });
+                    String status = "§7[Whispering to: §f" + whisperTarget + "§7]";
+                    int x = 4;
+                    int y = client.getWindow().getScaledHeight() - 25;
 
-        ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
-            whisperMode = false;
-        });
-    }
-}
+                    drawContext.drawText(
+                            client.textRenderer,
+                            status,
+                            x,
+                            y,
+                            0xFFFFFF,
+                            true
+                    );
+                }
+            });
+
+            ClientTickEvents.END_CLIENT_TICK.register(client -> {
+                if (client.world == null || client.player == null) return;
+
+                if (whisperMode && whisperTarget != null) {
+                    boolean targetOnline = client.world.getPlayers().stream()
+                            .anyMatch(p -> p.getEntityName().equalsIgnoreCase(whisperTarget));
+
+                    if (!targetOnline) {
+                        whisperMode = false;
+                        whisperTarget = null;
+                        client.player.sendMessage(Text.literal("§6[WhisperToggle] §7Target went offline. WhisperToggle disabled."), true);
+                    }
+                }
+            });
+
+            ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+                whisperMode = false;
+                whisperTarget = null;
+            });
+        })
+;;}}

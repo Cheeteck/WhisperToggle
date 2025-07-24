@@ -32,4 +32,4 @@
 
 ## 📜 License
 
-MIT License
+APGL-3.0
